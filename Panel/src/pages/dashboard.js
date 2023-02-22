@@ -4,6 +4,7 @@ import { useState } from 'react'
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Sidebar from './components/sidebar';
 
 export default function Dashboard() {
   const toastOptions = {
@@ -27,7 +28,7 @@ export default function Dashboard() {
       const location = document.getElementById('vpslocation').value;
 
       console.log(name, os, location);
-      const response = await axios.post(`http://192.9.162.98:8080/api/new/docker`, {
+      const response = await axios.post(`http://192.9.162.98:8080/api/new`, {
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -44,54 +45,59 @@ export default function Dashboard() {
     }
   };
 
-  function Modal({ onClose }) {
+  function Modal({ onClose, Component, pageProps }) {
     return (
-      <div className={styles.modal}>
-        <div className={styles.modalContent}>
-          <div className={styles.modalHeader}>
-            <h2>Create VPS</h2>
-            <button className={styles.close} onClick={onClose}>
-              &times;
-            </button>
-          </div>
-          <div className={styles.modalBody}>
-            <form className={styles.form}>
-              <label className={styles.label} htmlFor="name">Name:</label>
-              <input
-                className={styles.input}
-                type="text"
-                id='vpsname'
-                minLength="3"
-                maxLength="20"
-              />
-              <label className={styles.label} htmlFor="os">Operating System:</label>
-              <select
-                className={styles.input}
-                type="text"
-                id='vpsos'
-              >
-                <option value="ubuntu-20.04">Ubuntu 20.04</option>
-                <option value="ubuntu-18.04">Ubuntu 18.04</option>
-                <option value="debian-10">Debian 10</option>
-                <option value="debian-9">Debian 9</option>
-                <option value="centos-8">CentOS 8</option>
-                <option value="centos-7">CentOS 7</option>
-              </select>
-              <label className={styles.label} htmlFor="location">Location:</label>
-              <select
-                className={styles.input}
-                type="text"
-                id='vpslocation'
-              >
-                <option value="Sydney NSW">Sydney NSW</option>
-                <option value="New York, NY">New York, NY</option>
-                <option value="London, UK">London, UK</option>
-              </select>
-            </form>
-            <button onClick={createvps} type="submit">Create</button>
+      <>
+        <Sidebar>
+          <Component {...pageProps} />
+        </Sidebar>
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h2>Create VPS</h2>
+              <button className={styles.close} onClick={onClose}>
+                &times;
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <form className={styles.form}>
+                <label className={styles.label} htmlFor="name">Name:</label>
+                <input
+                  className={styles.input}
+                  type="text"
+                  id='vpsname'
+                  minLength="3"
+                  maxLength="20"
+                />
+                <label className={styles.label} htmlFor="os">Operating System:</label>
+                <select
+                  className={styles.input}
+                  type="text"
+                  id='vpsos'
+                >
+                  <option value="ubuntu-20.04">Ubuntu 20.04</option>
+                  <option value="ubuntu-18.04">Ubuntu 18.04</option>
+                  <option value="debian-10">Debian 10</option>
+                  <option value="debian-9">Debian 9</option>
+                  <option value="centos-8">CentOS 8</option>
+                  <option value="centos-7">CentOS 7</option>
+                </select>
+                <label className={styles.label} htmlFor="location">Location:</label>
+                <select
+                  className={styles.input}
+                  type="text"
+                  id='vpslocation'
+                >
+                  <option value="Sydney NSW">Sydney NSW</option>
+                  <option value="New York, NY">New York, NY</option>
+                  <option value="London, UK">London, UK</option>
+                </select>
+              </form>
+              <button onClick={createvps} type="submit">Create</button>
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
