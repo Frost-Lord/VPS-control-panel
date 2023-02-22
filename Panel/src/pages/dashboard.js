@@ -27,11 +27,17 @@ export default function Dashboard() {
       const location = document.getElementById('vpslocation').value;
 
       console.log(name, os, location);
-      const response = await axios.post(`http://localhost:5000/api/new/${os}`, {
+      const response = await axios.post(`http://192.9.162.98:8080/api/new/docker`, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With'
+        },
         name: name,
         os: os,
         location: location,
       });
+      console.log(response.data);
     } catch (error) {
       toast.error('An Error Occured', toastOptions);
       console.error(error);

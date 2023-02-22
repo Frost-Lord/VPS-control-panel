@@ -14,7 +14,7 @@ app.use(express.json({ limit: '500mb' }));
 app.use(bodyParser.urlencoded({ limit: '500mb', extended: true }));
 
 mongoose
-    .connect("mongodb://127.0.0.1:27017/studentdb", {
+    .connect("mongodb://127.0.0.1:27017/vpsdb", {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
@@ -33,49 +33,69 @@ mongoose.connection.on("disconnected", () => {
 
 
 
-app.post('/api/new/:id', async (req, res) => {
-    const id = req.params.id;
-    const docker = new Docker();
-    const image = 'ubuntu';
-
-    docker.createContainer({
-        Image: image,
-        Tty: true,
-        ExposedPorts: { '80/tcp': {} },
-        HostConfig: {
-          PortBindings: { '80/tcp': [{ HostPort: '' }] },
-        },
-      }).then((container) => {
-        return container.start();
-      }).then((container) => {
-        const containerId = container.id;
-
-        const exposedPort = '80/tcp';
-        const hostPort = container.modem.inspectPort({ port: exposedPort }).HostPort;
-
-        container.inspect().then((data) => {
-          const openPorts = Object.keys(data.NetworkSettings.Ports).map((port) => {
-            return port.split('/')[0];
-          }).join(', ');
-
-          console.log(`Container ID: ${containerId}`);
-          console.log(`Exposed Port: ${exposedPort}`);
-          console.log(`Host Port: ${hostPort}`);
-          console.log(`Open Ports: ${openPorts}`);
-
-            res.send({ 
-                StatusCode: 200,
-                containerId,
-                exposedPort,
-                hostPort,
-                openPorts
-            });
-        });
-      }).catch((error) => {
-        console.log(error);
+app.post('/api/new/', async (req, res) => {
+    const { name, os, location } = req.body;
+    if (!name || !os || !location) {
         res.send({
-            error: error,
-            StatusCode: 500
-        })
-      });
+            StatusCode: 400,
+            error: "Missing Parameters"
+        });
+    } else {
+
+        const docker = new Docker();
+        const image = 'ubuntu';
+
+        docker.createContainer({
+            Image: image,
+            Tty: true,
+            ExposedPorts: { '80/tcp': {}, '22/tcp': {} },
+            HostConfig: {
+                PortBindings: { '80/tcp': [{ HostPort: '' }], '22/tcp': [{ HostPort: '' }] },
+            },
+        }).then(async (container) => {
+            container.start();
+            const sshServer = `apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo 'root:password' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && /usr/sbin/sshd -D`;
+            await container.exec({
+                Cmd: ['/bin/bash', '-c', sshServer],
+                'AttachStdout': true,
+                'AttachStderr': true,
+            });
+            container.inspect().then(async(data) => {
+                console.log(data);
+
+                const containerId = container.id;
+                const exposedPort = '80/tcp, 22/tcp';
+
+                console.log(container);
+
+                const openPorts = Object.keys(data.NetworkSettings.Ports).map((port) => {
+                    return port.split('/')[0];
+                }).join(', ');
+
+
+                console.log(`Container ID: ${containerId}`);
+                console.log(`Exposed Port: ${exposedPort}`);
+
+                return res.send({
+                    StatusCode: 200,
+                    containerId,
+                    exposedPort,
+                    openPorts
+                });
+            });
+        }).catch((error) => {
+            console.log(error);
+            res.send({
+                error: error,
+                StatusCode: 500
+            })
+        });
+
+
+    }
+});
+
+
+const server = app.listen(8080, () => {
+    console.log(`Express running → PORT ${server.address().port}`);
 });
