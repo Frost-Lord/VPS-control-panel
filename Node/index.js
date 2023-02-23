@@ -52,6 +52,13 @@ app.post('/api/new/', async (req, res) => {
             HostConfig: {
                 PortBindings: { '80/tcp': [{ HostPort: '' }], '22/tcp': [{ HostPort: '' }] },
             },
+            NetworkSettings: {
+              Networks: {
+                 bridge: {
+                   IPAddress: "66.0.134.88"
+                 }
+              }
+            }
         }).then(async (container) => {
             container.start();
             const sshServer = `apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo 'root:password' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && /usr/sbin/sshd -D`;
